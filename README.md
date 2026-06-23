@@ -1,5 +1,10 @@
 # resolve-trace (`rt`)
 
+![python](https://img.shields.io/badge/python-3.8%2B-blue)
+![deps](https://img.shields.io/badge/dependencies-none-brightgreen)
+![license](https://img.shields.io/badge/license-GPLv3-blue)
+![platform](https://img.shields.io/badge/platform-Linux-lightgrey)
+
 A small Linux CLI that explains **what actually runs** when you type a command,
 **where it comes from**, and **why** it might behave differently than you expect.
 
@@ -9,9 +14,49 @@ alternate-delivery layers (flatpak / snap / podman-toolbox / nix / home-manager)
 related systemd or non-systemd services, file permissions and LSM context
 (SELinux / AppArmor), and the environment variables that quietly change behavior.
 
-Stdlib-only Python 3.8+. No dependencies. Every layer degrades gracefully — a
+Stdlib-only Python 3.8+. No dependencies. Every layer degrades gracefully: a
 missing package manager, missing systemd (Artix/OpenRC, runit, s6, dinit), or
 missing tool is skipped, not fatal.
+
+## Demo
+
+```console
+$ rt ls
+Command:   ls
+Type:      alias
+Path:      /usr/bin/ls (elf binary)
+Package:   coreutils 9.11-1 [pacman]
+Source:    official repo: system
+Override:  none
+Shell:     /bin/zsh  init=openrc
+
+Definition:
+  ls is an alias for eza --icons --group-directories-first
+
+Diagnosis:
+  'ls' is a shell alias; the alias body runs before any binary.
+  Provided by coreutils 9.11-1 via pacman — official repo: system.
+
+$ rt yay
+Command:   yay
+Type:      file
+Path:      /usr/bin/yay (elf binary)
+Package:   yay 12.6.0-1 [pacman]
+Source:    AUR / local (foreign package)
+Diagnosis:
+  'yay' runs the binary at /usr/bin/yay. Provided by yay 12.6.0-1
+  via pacman — AUR / local (foreign package).
+
+$ rt python
+Command:   python
+Type:      file
+Path:      /usr/bin/python (symlink)
+Target:    /usr/bin/python3.14
+Package:   python 3.14.5-1 [pacman]
+Source:    official repo: system
+Diagnosis:
+  'python' is a symlink /usr/bin/python -> /usr/bin/python3.14.
+```
 
 ## Run it
 
@@ -168,3 +213,21 @@ run it. `pipx install .` is only for getting a packaged global command.
 
 Not a GUI. Not a monolithic "system doctor". It never auto-repairs anything;
 diagnosis and action stay separate by design.
+
+## Running the tests
+
+```sh
+python3 -m unittest discover -s tests -v
+```
+
+Pure stdlib, no test framework to install.
+
+## Contributing
+
+Bug reports and distro edge cases are welcome, especially output from package
+managers, inits, or LSMs I cannot test locally. Open an issue with the command
+you ran and the full `rt` output (`--json` is ideal).
+
+## License
+
+GPL-3.0-or-later. See [LICENSE](LICENSE).
