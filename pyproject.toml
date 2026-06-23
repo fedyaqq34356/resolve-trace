@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "resolve-trace"
+version = "1.1.0"
+description = "Explain what actually runs on Linux, where it comes from, and why."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+
+[project.scripts]
+rt = "resolve_trace.cli:main"
+resolve-trace = "resolve_trace.cli:main"
+
+[tool.setuptools]
+packages = ["resolve_trace"]
