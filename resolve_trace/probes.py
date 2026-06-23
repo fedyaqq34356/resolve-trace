@@ -37,21 +37,22 @@ SUSPICIOUS_ENV = {
 def resolve_type(cmd):
     out = {"name": cmd, "kind": "not found", "detail": None}
     q = shell_quote(cmd)
+    sep = "\x1f"
 
     if shell_name() == "zsh":
-        rc, t, _ = shell_query(f"whence -w -- {q}")
-        kind = t.strip().split(":")[-1].strip() if rc == 0 else ""
+        rc, raw, _ = shell_query(f"whence -w -- {q}; printf '{sep}'; whence -v -- {q}")
+        kind_raw, _, detail = raw.partition(sep)
+        kind = kind_raw.strip().split(":")[-1].strip()
         kind = {"command": "file", "hashed": "file", "reserved": "keyword",
                 "none": ""}.get(kind, kind)
-        rc, detail, _ = shell_query(f"whence -v -- {q}")
     else:
-        rc, t, _ = shell_query(f"type -t -- {q}")
-        kind = t.strip() if rc == 0 else ""
-        rc, detail, _ = shell_query(f"type -- {q}")
+        rc, raw, _ = shell_query(f"type -t -- {q}; printf '{sep}'; type -- {q}")
+        kind_raw, _, detail = raw.partition(sep)
+        kind = kind_raw.strip()
 
     if kind:
         out["kind"] = kind
-    if rc == 0 and detail.strip():
+    if detail.strip():
         out["detail"] = detail.strip()
     return out
 
@@ -127,11 +128,12 @@ def package_owner(path):
     if not path:
         return res
     real = os.path.realpath(path)
+    targets = (path,) if real == path else (path, real)
 
     if have("pacman"):
         res["available"] = True
         res["manager"] = "pacman"
-        for target in (path, real):
+        for target in targets:
             rc, out, _ = run(["pacman", "-Qo", target])
             if rc == 0 and " is owned by " in out:
                 owner = out.strip().split(" is owned by ")[-1]
@@ -143,7 +145,7 @@ def package_owner(path):
     if have("rpm"):
         res["available"] = True
         res["manager"] = "rpm/dnf" if have("dnf") else "rpm"
-        for target in (path, real):
+        for target in targets:
             rc, out, _ = run(["rpm", "-qf", target])
             if rc == 0 and "not owned" not in out:
                 name = out.strip().splitlines()[0]
@@ -155,7 +157,7 @@ def package_owner(path):
     if have("dpkg"):
         res["available"] = True
         res["manager"] = "dpkg"
-        for target in (path, real):
+        for target in targets:
             rc, out, _ = run(["dpkg", "-S", target])
             if rc == 0 and out.strip():
                 res["package"] = out.strip().split(":")[0]

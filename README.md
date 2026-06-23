@@ -27,16 +27,37 @@ After download, the short launcher is `rt`:
 
 `rt <name>` with no subcommand is shorthand for `rt trace <name>`.
 
-## Install (optional)
+## Install
+
+### Automatic
+
+One command — clones (if needed), links `rt` onto your PATH, checks Python:
 
 ```sh
-pipx install .        # gives you a global `rt` (and `resolve-trace`)
+curl -fsSL https://raw.githubusercontent.com/fedyaqq34356/resolve-trace/main/install.sh | sh
 ```
 
-or just symlink the launcher onto PATH:
+or, if you already cloned the repo:
 
 ```sh
-ln -s "$PWD/rt" ~/.local/bin/rt
+./install.sh
+```
+
+### Manual
+
+```sh
+git clone https://github.com/fedyaqq34356/resolve-trace
+cd resolve-trace
+chmod +x rt
+ln -s "$PWD/rt" ~/.local/bin/rt          # make `rt` global
+# ensure ~/.local/bin is on PATH:
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+```
+
+Or install as a package (gives global `rt` and `resolve-trace`):
+
+```sh
+pipx install .
 ```
 
 ## Commands
